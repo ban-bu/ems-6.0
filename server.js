@@ -12,42 +12,43 @@ app.use(helmet({
     contentSecurityPolicy: {
         useDefaults: true,
         directives: {
-            defaultSrc: ["'self'"],
-            scriptSrc: [
-                "'self'", 
-                "'unsafe-inline'", 
+            // 使用明确的破折号格式，确保各浏览器按预期解析
+            "default-src": ["'self'"],
+            "script-src": [
+                "'self'",
+                "'unsafe-inline'",
                 "'unsafe-eval'",
                 "https://cdnjs.cloudflare.com",
                 "https://api-inference.modelscope.cn",
                 "https://cdn.jsdelivr.net",
-                "https://kit.fontawesome.com"
+                "https://kit.fontawesome.com",
+                "https://unpkg.com"
             ],
-            // 允许通过<script>标签加载上述源的脚本
-            scriptSrcElem: [
+            "script-src-elem": [
                 "'self'",
                 "https://cdnjs.cloudflare.com",
                 "https://api-inference.modelscope.cn",
                 "https://cdn.jsdelivr.net",
-                "https://kit.fontawesome.com"
+                "https://kit.fontawesome.com",
+                "https://unpkg.com"
             ],
-            // 临时允许内联事件处理（如 onclick），以兼容现有页面
-            // 后续可逐步移除内联事件后关闭此项
-            scriptSrcAttr: ["'unsafe-inline'"],
-            styleSrc: [
-                "'self'", 
+            // 兼容现有内联事件处理器（后续可移除）
+            "script-src-attr": ["'unsafe-inline'"],
+            "style-src": [
+                "'self'",
                 "'unsafe-inline'",
                 "https://cdnjs.cloudflare.com",
                 "https://cdn.jsdelivr.net",
                 "https://fonts.googleapis.com"
             ],
-            fontSrc: [
+            "font-src": [
                 "'self'",
                 "https://fonts.gstatic.com",
                 "https://cdnjs.cloudflare.com",
                 "https://ka-f.fontawesome.com"
             ],
-            imgSrc: ["'self'", "data:", "https:"],
-            connectSrc: [
+            "img-src": ["'self'", "data:", "https:"],
+            "connect-src": [
                 "'self'",
                 "https://api-inference.modelscope.cn",
                 "wss:"
@@ -55,6 +56,17 @@ app.use(helmet({
         }
     }
 }));
+
+// 为HTML响应禁用缓存，避免旧版页面（含unpkg引用）被浏览器缓存
+app.use((req, res, next) => {
+    if (req.method === 'GET' && (req.path === '/' || req.path.endsWith('.html'))) {
+        res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
+        res.setHeader('Surrogate-Control', 'no-store');
+    }
+    next();
+});
 
 // 启用GZIP压缩
 app.use(compression());
@@ -127,6 +139,9 @@ app.post('/api/upload', (req, res) => {
 
 // 主路由
 app.get('/', (req, res) => {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
@@ -146,6 +161,9 @@ app.get('*', (req, res) => {
     }
     
     // 如果不是静态文件，返回主页面
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
