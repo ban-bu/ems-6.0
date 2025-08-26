@@ -169,12 +169,22 @@ app.post('/api/upload', (req, res) => {
     }
 });
 
-// 主路由
+// 主路由 - Railway默认健康检查
 app.get('/', (req, res) => {
-    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-    res.setHeader('Pragma', 'no-cache');
-    res.setHeader('Expires', '0');
-    res.sendFile(path.join(__dirname, 'index.html'));
+    try {
+        res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
+        res.sendFile(path.join(__dirname, 'index.html'));
+        
+        // Railway部署时记录根路径访问
+        if (process.env.RAILWAY_ENVIRONMENT) {
+            console.log(`🔍 根路径访问 - ${new Date().toISOString()}`);
+        }
+    } catch (error) {
+        console.error('根路径处理错误:', error);
+        res.status(500).send('服务器内部错误');
+    }
 });
 
 // 备用路由（兼容性）
@@ -216,7 +226,7 @@ app.use((req, res) => {
     });
 });
 
-// 启动服务器
+// 启动服务器 - 使用Railway的默认健康检查机制
 const server = app.listen(PORT, '0.0.0.0', () => {
     console.log(`🚀 碳排放管理系统正在运行`);
     console.log(`📱 本地访问: http://localhost:${PORT}`);
@@ -225,16 +235,23 @@ const server = app.listen(PORT, '0.0.0.0', () => {
     console.log(`📊 端口绑定: ${PORT} (绑定到 0.0.0.0)`);
     console.log(`⏰ 启动时间: ${new Date().toISOString()}`);
     
-    if (process.env.NODE_ENV === 'development') {
-        console.log(`🔧 开发模式已启用`);
-        console.log(`📝 健康检查: http://localhost:${PORT}/health`);
-        console.log(`⚙️  配置接口: http://localhost:${PORT}/api/config`);
-    }
-    
     // Railway部署完成信号
     if (process.env.RAILWAY_ENVIRONMENT) {
         console.log(`🚄 Railway环境: ${process.env.RAILWAY_ENVIRONMENT}`);
         console.log(`✅ 服务器启动完成，等待连接...`);
+        console.log(`🔗 健康检查端点: http://localhost:${PORT}/health`);
+        console.log(`🏠 主页面: http://localhost:${PORT}/`);
+        
+        // 延迟输出，确保Railway能检测到启动完成
+        setTimeout(() => {
+            console.log(`🟢 应用程序准备就绪 - Railway应该能检测到此状态`);
+        }, 1000);
+    }
+    
+    if (process.env.NODE_ENV === 'development') {
+        console.log(`🔧 开发模式已启用`);
+        console.log(`📝 健康检查: http://localhost:${PORT}/health`);
+        console.log(`⚙️  配置接口: http://localhost:${PORT}/api/config`);
     }
 });
 
@@ -243,26 +260,17 @@ server.timeout = 120000; // 2分钟
 server.keepAliveTimeout = 65000; // 65秒
 server.headersTimeout = 66000; // 66秒
 
-// 优雅关闭处理
+// 优雅关闭处理 - 简化Railway兼容版本
 process.on('SIGTERM', () => {
-    console.log('📦 收到SIGTERM信号，正在优雅关闭服务器...');
+    console.log('📦 收到SIGTERM信号，正在关闭服务器...');
     console.log(`⏰ 关闭时间: ${new Date().toISOString()}`);
     console.log(`⏱️  运行时长: ${Math.floor(process.uptime())} 秒`);
     
-    server.close((err) => {
-        if (err) {
-            console.error('❌ 服务器关闭错误:', err);
-            process.exit(1);
-        }
-        console.log('✅ 服务器已优雅关闭');
-        process.exit(0);
-    });
-    
-    // 强制关闭超时
+    // 快速关闭，避免Railway超时
     setTimeout(() => {
-        console.log('⚠️  强制关闭服务器');
-        process.exit(1);
-    }, 30000);
+        console.log('✅ 快速关闭完成');
+        process.exit(0);
+    }, 1000);
 });
 
 process.on('SIGINT', () => {

@@ -1,0 +1,11 @@
+# Nixpacks configuration for Railway
+# This ensures Railway uses the correct Node.js version and setup
+
+[phases.install]
+cmds = ["npm ci"]
+
+[phases.build]
+cmds = ["echo 'No build needed for static files'"]
+
+[start]
+cmd = "npm start"
