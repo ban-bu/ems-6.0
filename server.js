@@ -10,6 +10,7 @@ const PORT = process.env.PORT || 3000;
 // 安全和性能中间件
 app.use(helmet({
     contentSecurityPolicy: {
+        useDefaults: true,
         directives: {
             defaultSrc: ["'self'"],
             scriptSrc: [
@@ -21,6 +22,17 @@ app.use(helmet({
                 "https://cdn.jsdelivr.net",
                 "https://kit.fontawesome.com"
             ],
+            // 允许通过<script>标签加载上述源的脚本
+            scriptSrcElem: [
+                "'self'",
+                "https://cdnjs.cloudflare.com",
+                "https://api-inference.modelscope.cn",
+                "https://cdn.jsdelivr.net",
+                "https://kit.fontawesome.com"
+            ],
+            // 临时允许内联事件处理（如 onclick），以兼容现有页面
+            // 后续可逐步移除内联事件后关闭此项
+            scriptSrcAttr: ["'unsafe-inline'"],
             styleSrc: [
                 "'self'", 
                 "'unsafe-inline'",

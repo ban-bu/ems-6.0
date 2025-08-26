@@ -71,9 +71,9 @@ class ConfigManager {
 
     getApiKey() {
         // 优先级：环境变量 > 服务器配置 > 默认值
-        return window.AI_API_KEY || 
-               process?.env?.AI_API_KEY || 
-               'ms-150d583e-ed00-46d3-ab35-570f03555599';
+        const fromWindow = (typeof window !== 'undefined' && window.AI_API_KEY) ? window.AI_API_KEY : null;
+        const fromProcess = (typeof process !== 'undefined' && process.env && process.env.AI_API_KEY) ? process.env.AI_API_KEY : null;
+        return fromWindow || fromProcess || 'ms-150d583e-ed00-46d3-ab35-570f03555599';
     }
 
     async getConfig() {
