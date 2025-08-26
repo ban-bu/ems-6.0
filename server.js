@@ -91,10 +91,26 @@ app.get('/api/config', (req, res) => {
     });
 });
 
-// 文件上传处理 (如果需要)
+// 文件上传处理
 app.post('/api/upload', (req, res) => {
-    // 这里可以添加文件上传逻辑
-    res.json({ message: '文件上传功能待实现' });
+    try {
+        // 由于这是一个前端处理的应用，文件在客户端被解析
+        // 这个端点主要用于日志记录和可能的文件元数据存储
+        console.log('收到文件上传请求');
+        
+        res.json({ 
+            success: true,
+            message: '文件上传请求已收到',
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        console.error('文件上传处理错误:', error);
+        res.status(500).json({
+            success: false,
+            message: '文件上传处理失败',
+            error: error.message
+        });
+    }
 });
 
 // 主路由
