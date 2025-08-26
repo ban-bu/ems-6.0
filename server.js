@@ -97,14 +97,39 @@ app.use(express.static(path.join(__dirname), {
     lastModified: true
 }));
 
-// 健康检查端点
+// 增强的健康检查端点
 app.get('/health', (req, res) => {
-    res.json({ 
-        status: 'ok', 
+    const healthData = {
+        status: 'ok',
         timestamp: new Date().toISOString(),
         version: '2.2.0',
-        environment: process.env.NODE_ENV || 'development'
-    });
+        environment: process.env.NODE_ENV || 'development',
+        port: PORT,
+        uptime: process.uptime(),
+        memory: process.memoryUsage(),
+        platform: process.platform,
+        nodeVersion: process.version,
+        railway: {
+            environment: process.env.RAILWAY_ENVIRONMENT || 'not-railway',
+            project: process.env.RAILWAY_PROJECT_NAME || 'unknown',
+            service: process.env.RAILWAY_SERVICE_NAME || 'unknown'
+        },
+        ai: {
+            enabled: !!process.env.AI_API_KEY,
+            configured: !!process.env.AI_BASE_URL
+        }
+    };
+    
+    // 设置健康检查响应头
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+    res.setHeader('Content-Type', 'application/json');
+    
+    // 记录健康检查请求（仅在开发环境）
+    if (process.env.NODE_ENV === 'development') {
+        console.log(`💓 健康检查请求 - ${new Date().toISOString()}`);
+    }
+    
+    res.status(200).json(healthData);
 });
 
 // API端点 - 用于前端获取环境配置
@@ -192,26 +217,67 @@ app.use((req, res) => {
 });
 
 // 启动服务器
-app.listen(PORT, '0.0.0.0', () => {
+const server = app.listen(PORT, '0.0.0.0', () => {
     console.log(`🚀 碳排放管理系统正在运行`);
     console.log(`📱 本地访问: http://localhost:${PORT}`);
     console.log(`🌍 环境: ${process.env.NODE_ENV || 'development'}`);
     console.log(`🤖 AI服务: ${process.env.AI_API_KEY ? '已启用' : '未配置'}`);
+    console.log(`📊 端口绑定: ${PORT} (绑定到 0.0.0.0)`);
+    console.log(`⏰ 启动时间: ${new Date().toISOString()}`);
     
     if (process.env.NODE_ENV === 'development') {
         console.log(`🔧 开发模式已启用`);
         console.log(`📝 健康检查: http://localhost:${PORT}/health`);
         console.log(`⚙️  配置接口: http://localhost:${PORT}/api/config`);
     }
+    
+    // Railway部署完成信号
+    if (process.env.RAILWAY_ENVIRONMENT) {
+        console.log(`🚄 Railway环境: ${process.env.RAILWAY_ENVIRONMENT}`);
+        console.log(`✅ 服务器启动完成，等待连接...`);
+    }
 });
+
+// 设置服务器超时
+server.timeout = 120000; // 2分钟
+server.keepAliveTimeout = 65000; // 65秒
+server.headersTimeout = 66000; // 66秒
 
 // 优雅关闭处理
 process.on('SIGTERM', () => {
-    console.log('📦 正在优雅关闭服务器...');
-    process.exit(0);
+    console.log('📦 收到SIGTERM信号，正在优雅关闭服务器...');
+    console.log(`⏰ 关闭时间: ${new Date().toISOString()}`);
+    console.log(`⏱️  运行时长: ${Math.floor(process.uptime())} 秒`);
+    
+    server.close((err) => {
+        if (err) {
+            console.error('❌ 服务器关闭错误:', err);
+            process.exit(1);
+        }
+        console.log('✅ 服务器已优雅关闭');
+        process.exit(0);
+    });
+    
+    // 强制关闭超时
+    setTimeout(() => {
+        console.log('⚠️  强制关闭服务器');
+        process.exit(1);
+    }, 30000);
 });
 
 process.on('SIGINT', () => {
-    console.log('📦 正在关闭服务器...');
+    console.log('📦 收到SIGINT信号，正在关闭服务器...');
     process.exit(0);
+});
+
+// 捕获未处理的异常
+process.on('uncaughtException', (err) => {
+    console.error('💥 未捕获的异常:', err);
+    console.log('🔄 尝试优雅关闭...');
+    process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('💥 未处理的Promise拒绝:', reason);
+    console.log('Promise:', promise);
 });
