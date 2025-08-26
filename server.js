@@ -26,6 +26,7 @@ app.use(helmet({
             ],
             "script-src-elem": [
                 "'self'",
+                "'unsafe-inline'",
                 "https://cdnjs.cloudflare.com",
                 "https://api-inference.modelscope.cn",
                 "https://cdn.jsdelivr.net",
@@ -60,6 +61,12 @@ app.use(helmet({
 // 为HTML响应禁用缓存，避免旧版页面（含unpkg引用）被浏览器缓存
 app.use((req, res, next) => {
     if (req.method === 'GET' && (req.path === '/' || req.path.endsWith('.html'))) {
+        res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
+        res.setHeader('Surrogate-Control', 'no-store');
+    }
+    if (req.method === 'GET' && (req.path.endsWith('/config.js') || req.path.endsWith('/script.js'))) {
         res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
         res.setHeader('Pragma', 'no-cache');
         res.setHeader('Expires', '0');
