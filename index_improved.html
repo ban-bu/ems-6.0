@@ -7,9 +7,6 @@
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="improvements.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    
-    <!-- 配置管理器 - 必须在其他脚本之前加载 -->
-    <script src="config.js"></script>
 </head>
 <body>
     <div class="app-container">
@@ -43,7 +40,7 @@
                         <h3>拖拽文件到此处或点击上传</h3>
                         <p>支持 PDF, DOC, DOCX, TXT 格式</p>
                         <input type="file" id="fileInput" accept=".pdf,.doc,.docx,.txt" hidden>
-                        <button class="btn btn-primary" id="selectFileBtn">
+                        <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
                             选择文件
                         </button>
                     </div>
@@ -173,8 +170,8 @@
         </div>
     </div>
 
-    <!-- 引入Mammoth.js库用于DOCX文件解析（改为使用 jsDelivr 以符合CSP） -->
-    <script src="https://cdn.jsdelivr.net/npm/mammoth@1.4.21/mammoth.browser.min.js"></script>
+    <!-- 引入Mammoth.js库用于DOCX文件解析 -->
+    <script src="https://unpkg.com/mammoth@1.4.21/mammoth.browser.min.js"></script>
     
     <!-- 在script.js加载前重写关键函数 -->
     <script>

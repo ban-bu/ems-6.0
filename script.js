@@ -390,8 +390,6 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function initializeApp() {
-    console.log('正在初始化应用...');
-    
     // 设置导航标签事件
     const navTabs = document.querySelectorAll('.nav-tab');
     navTabs.forEach(tab => {
@@ -406,8 +404,6 @@ function initializeApp() {
     
     // 初始化默认时间线
     renderTimeline(DEFAULT_PRODUCT.timeline);
-    
-    console.log('应用初始化完成');
 }
 
 function setupEventListeners() {
@@ -440,81 +436,13 @@ function setupEventListeners() {
 
 function setupFileUpload() {
     const fileInput = document.getElementById('fileInput');
-    const selectFileBtn = document.getElementById('selectFileBtn') || document.querySelector('.btn.btn-primary');
-    
     if (fileInput) {
-        // 移除之前的事件监听器（如果有）
-        fileInput.removeEventListener('change', handleFileInputChange);
-        // 添加新的事件监听器
-        fileInput.addEventListener('change', handleFileInputChange);
-        console.log('文件输入事件监听器已绑定');
-    } else {
-        console.error('未找到fileInput元素');
-    }
-    
-    if (selectFileBtn) {
-        // 移除之前的点击事件监听器
-        selectFileBtn.removeEventListener('click', triggerFileInput);
-        // 添加新的点击事件监听器
-        selectFileBtn.addEventListener('click', triggerFileInput);
-        console.log('选择文件按钮事件监听器已绑定');
-    } else {
-        console.error('未找到选择文件按钮');
-    }
-}
-
-// 单独的事件处理函数，便于移除事件监听器
-function handleFileInputChange(e) {
-    const files = Array.from(e.target.files);
-    console.log('文件选择变化:', files.length, '个文件');
-    handleFileUpload(files);
-}
-
-function triggerFileInput(e) {
-    e.preventDefault();
-    console.log('选择文件按钮被点击');
-    
-    const fileInput = document.getElementById('fileInput');
-    if (fileInput) {
-        console.log('找到fileInput元素，准备触发文件选择对话框');
-        try {
-            fileInput.click();
-            console.log('成功触发文件选择对话框');
-        } catch (error) {
-            console.error('触发文件选择对话框时出错:', error);
-        }
-    } else {
-        console.error('点击时未找到fileInput元素');
-        // 提供用户反馈
-        alert('文件选择功能暂时不可用，请刷新页面后重试');
-    }
-}
-
-// 调试函数：检查元素状态
-window.debugFileUpload = function() {
-    console.log('=== 文件上传调试信息 ===');
-    const fileInput = document.getElementById('fileInput');
-    const selectBtn = document.getElementById('selectFileBtn');
-    const uploadArea = document.getElementById('uploadArea');
-    
-    console.log('fileInput元素:', fileInput);
-    console.log('选择文件按钮:', selectBtn);
-    console.log('上传区域:', uploadArea);
-    
-    if (fileInput) {
-        console.log('fileInput属性:', {
-            accept: fileInput.accept,
-            hidden: fileInput.hidden,
-            disabled: fileInput.disabled
+        fileInput.addEventListener('change', (e) => {
+            const files = Array.from(e.target.files);
+            handleFileUpload(files);
         });
     }
-    
-    if (selectBtn) {
-        console.log('按钮事件监听器数量:', selectBtn.getEventListeners?.('click')?.length || '无法检测');
-    }
-    
-    console.log('=== 调试信息结束 ===');
-};
+}
 
 async function handleFileUpload(files) {
     const validFiles = files.filter(file => {
@@ -551,16 +479,13 @@ async function handleFileUpload(files) {
             <h3>拖拽文件到此处或点击上传</h3>
             <p>支持 PDF, DOC, DOCX, TXT 格式</p>
             <input type="file" id="fileInput" accept=".pdf,.doc,.docx,.txt" hidden>
-            <button class="btn btn-primary" id="selectFileBtn">
+            <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
                 选择文件
             </button>
         `;
         
         // 重新绑定文件输入事件
-        setTimeout(() => {
-            setupFileUpload();
-            console.log('文件上传成功后重新绑定事件监听器');
-        }, 100);
+        setTimeout(() => setupFileUpload(), 100);
         
         // 开始文档分析
         analyzeDocuments();
@@ -574,16 +499,13 @@ async function handleFileUpload(files) {
             <h3>拖拽文件到此处或点击上传</h3>
             <p>支持 PDF, DOC, DOCX, TXT 格式</p>
             <input type="file" id="fileInput" accept=".pdf,.doc,.docx,.txt" hidden>
-            <button class="btn btn-primary" id="selectFileBtn">
+            <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
                 选择文件
             </button>
         `;
         
         // 重新绑定文件输入事件
-        setTimeout(() => {
-            setupFileUpload();
-            console.log('文件上传成功后重新绑定事件监听器');
-        }, 100);
+        setTimeout(() => setupFileUpload(), 100);
     }
 }
 
